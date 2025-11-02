@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>htmlOS (x1coOS+ Android Cam Fix)</title>
+<style>
+:root{
+  --bg:#0b1220; --panel:#0f1724; --accent:#2dd4bf;
+  --text:#e6eef8; --muted:#9fb1c9;
+  --glass: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  --stroke: rgba(255,255,255,0.06);
+  --hover: rgba(255,255,255,0.05);
+  --shadow: 0 10px 30px rgba(0,0,0,.6);
+}
+:root[data-theme="light"]{
+  --bg:#eef2f8; --panel:#ffffff; --accent:#0ea5e9;
+  --text:#0f172a; --muted:#475569;
+  --glass: linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.01));
+  --stroke: rgba(0,0,0,0.10);
+  --hover: rgba(0,0,0,0.05);
+  --shadow: 0 10px 30px rgba(0,0,0,0.12);
+}
+*{box-sizing:border-box;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,'Helvetica Neue',Arial;margin:0;padding:0}
+:root{--radius:12px}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:6px}
+@media (prefers-reduced-motion:no-preference){
+  *{transition:background-color .25s,color .25s, border-color .25s, opacity .2s}
+}
+html,body{height:100%;background:linear-gradient(180deg,#071026 0%, #081526 50%, #071222 100%);color:var(--text);overflow:hidden}
+:root[data-theme="light"] body{background:linear-gradient(180deg,#f4f7fb 0%, #eef2f8 50%, #e8edf6 100%)}
+.desktop{width:100%;height:100%;position:relative;display:flex;flex-direction:column}
+.wallpaper{flex:1;padding:20px;background:
+  radial-gradient(circle at 10% 10%, color-mix(in oklab, var(--accent) 30%, transparent) 0%, transparent 20%),
+  radial-gradient(circle at 80% 80%, rgba(125,106,255,0.10), transparent 20%)}
+.icons{display:flex;flex-wrap:wrap;gap:16px}
+.icon{width:88px;text-align:center;cursor:pointer;user-select:none}
+.icon .box{width:72px;height:72px;border-radius:12px;background:var(--glass);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;border:1px solid var(--stroke); box-shadow: var(--shadow)}
+.icon .box:hover{background:var(--hover)}
+.icon span{display:block;font-size:12px;color:var(--muted)}
+.taskbar{height:48px;background:linear-gradient(0deg, rgba(0,0,0,0.35), rgba(255,255,255,0.02));backdrop-filter:blur(6px);display:flex;align-items:center;padding:0 8px;gap:8px}
+:root[data-theme="light"] .taskbar{background:linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.02))}
+.start{width:36px;height:36px;border-radius:8px;background:var(--panel);display:flex;align-items:center;justify-content:center;cursor:pointer;border:1px solid var(--stroke)}
+.start:hover{filter:brightness(1.03)}
+.task-controls{display:flex;gap:8px;align-items:center;margin-left:auto;margin-right:8px;color:var(--muted)}
+.clock{min-width:80px;text-align:right}
+.window{position:absolute;width:720px;height:480px;background:var(--glass);border-radius:10px;border:1px solid var(--stroke);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+.titlebar{height:36px;display:flex;align-items:center;padding:0 8px;gap:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);touch-action:none;user-select:none}
+.title{flex:1;font-size:13px;color:var(--text)}
+.controls{display:flex;gap:6px}
+.btn{width:28px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.btn:hover{background:var(--hover)}
+.content{flex:1;padding:12px;background:linear-gradient(180deg, rgba(255,255,255,0.005), transparent);overflow:auto}
+.terminal{font-family:monospace;background:#071320;padding:12px;border-radius:8px;color:#bfe9d7;height:100%;overflow:auto}
+:root[data-theme="light"] .terminal{background:#e7eef8;color:#063a3a}
+.startmenu{position:absolute;left:8px;bottom:56px;width:260px;background:var(--panel);border-radius:10px;padding:12px;border:1px solid var(--stroke);box-shadow:var(--shadow)}
+.startmenu h4{margin:0 0 8px 0;color:var(--text)}
+.startmenu button{display:block;width:100%;text-align:left;padding:8px;border-radius:8px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.startmenu button:hover{background:var(--hover)}
+.hidden{display:none !important}
+@media(max-width:900px){.window{width:95%;height:70%;left:2.5%;top:5%}}
+.cam-wrap{display:flex;flex-direction:column;gap:10px}
+.cam-view{width:100%;aspect-ratio:16/9;background:#000;border-radius:12px}
+.cam-toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.button{border:1px solid var(--stroke); background:var(--panel); color:var(--text);padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:600}
+.button:hover{background:var(--hover)}
+.button:disabled{opacity:.6;cursor:not-allowed}
+.hint{color:var(--muted);font-size:12px}
+.preview{max-width:100%;display:none;border-radius:12px}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.switch{display:inline-flex;align-items:center;gap:10px;cursor:pointer}
+.switch input{appearance:none;width:44px;height:26px;border-radius:26px;background:#9aa2b1;position:relative;outline:none;transition:background .2s}
+.switch input:checked{background:var(--accent)}
+.switch input::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s}
+.switch input:checked::after{left:21px}
+.warn{background:#1a2438;border:1px dashed #f59e0b;color:#f59e0b;padding:8px 10px;border-radius:10px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="desktop" id="desktop">
+  <div class="wallpaper">
+    <div class="icons" id="icons">
+      <div class="icon" data-app="terminal"><div class="box">💻</div><span>Terminal</span></div>
+      <div class="icon" data-app="notes"><div class="box">📝</div><span>Notas</span></div>
+      <div class="icon" data-app="settings"><div class="box">⚙️</div><span>Config</span></div>
+      <div class="icon" data-app="camera"><div class="box">📷</div><span>Câmera</span></div>
+    </div>
+  </div>
+  <div class="taskbar">
+    <div class="start" id="startBtn">☰</div>
+    <div class="task-controls">
+      <div id="tasks"></div>
+      <div class="clock" id="clock">--:--</div>
+    </div>
+  </div>
+  <div class="startmenu hidden" id="startMenu">
+    <h4>Menu Iniciar</h4>
+    <button data-app="terminal">Abrir Terminal</button>
+    <button data-app="notes">Abrir Notas</button>
+    <button data-app="camera">Abrir Câmera</button>
+    <hr style="border:none;border-top:1px solid var(--stroke);margin:8px 0">
+    <button id="logoutBtn">Recarregar htmlOS</button>
+  </div>
+  <template id="winTemplate">
+    <div class="window" data-id="">
+      <div class="titlebar">
+        <div class="title">Janela</div>
+        <div class="controls">
+          <div class="btn" data-action="min">—</div>
+          <div class="btn" data-action="max">□</div>
+          <div class="btn" data-action="close">✕</div>
+        </div>
+      </div>
+      <div class="content"></div>
+    </div>
+  </template>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    const desktop = document.getElementById('desktop');
+    const template = document.getElementById('winTemplate');
+    const tasks = document.getElementById('tasks');
+    const startMenu = document.getElementById('startMenu');
+    const startBtn = document.getElementById('startBtn');
+    const clockEl = document.getElementById('clock');
+    const iconsContainer = document.getElementById('icons');
+    let z = 5, idCounter = 1;
+
+    // Theme
+    const THEME_KEY = 'htmlos-theme';
+    function applySavedTheme(){
+      const saved = localStorage.getItem(THEME_KEY);
+      const theme = (saved === 'light' || saved === 'dark') ? saved : 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+    }
+    applySavedTheme();
+
+    // FS
+    const fs = {'/':{type:'dir',children:{
+      home:{type:'dir',children:{user:{type:'dir',children:{
+        'readme.txt':{type:'file',content:'Bem-vindo ao htmlOS!\nUse ls e cd para navegar.'}
+      }}}},
+      etc:{type:'dir',children:{'motd.txt':{type:'file',content:'Message of the Day: Seja nerd! 🤓'}}},
+      HTMLSYS:{type:'dir',children:{'sysfile.sys':{type:'file',content:'system core'}}}
+    }}};
+
+    let cwd = '/home/user';
+    function normalizePath(p){if(!p)return '/';if(p.startsWith('/')){const parts=p.split('/').filter(Boolean);const out=[];for(let part of parts){if(part==='..')out.pop();else if(part!=='.')out.push(part);}return '/'+out.join('/');}else{const base=cwd==='/'?[]:cwd.split('/').filter(Boolean);const parts=p.split('/').filter(Boolean);const out=base.slice();for(let part of parts){if(part==='..')out.pop();else if(part!=='.')out.push(part);}return '/'+out.join('/');}}
+    function getNode(path){const p=normalizePath(path);if(p==='/')return fs['/'];const parts=p.split('/').filter(Boolean);let node=fs['/'];for(let part of parts){if(!node.children||!node.children[part])return null;node=node.children[part];}return node;}
+    function listDir(path){const node=getNode(path);if(!node)return{error:'Diretório não encontrado'};if(node.type!=='dir')return{error:'Não é um diretório'};return{children:Object.keys(node.children).map(name=>({name,node:node.children[name]}))};}
+
+    // Clock
+    function nowFmt(){const d=new Date();return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});}
+    setInterval(()=>clockEl.textContent=nowFmt(),1000); clockEl.textContent=nowFmt();
+
+    // Tasks
+    function addTask(id,title){const t=document.createElement('button');t.textContent=title;t.style.marginRight='8px';t.dataset.win=id;t.className='button';tasks.appendChild(t);t.addEventListener('click',()=>{const w=document.querySelector(`[data-id="${id}"]`);if(!w){t.remove();return;}if(w.style.display==='none')w.style.display='flex';w.style.zIndex=++z;});}
+    function removeTask(id){const tb=tasks.querySelector(`[data-win="${id}"]`);if(tb)tb.remove();}
+
+    function makeDraggable(el){
+      const title=el.querySelector('.titlebar');let ox=0,oy=0,sx=0,sy=0,dragging=false;
+      function start(e){dragging=true;const p=e.type.startsWith('touch')?e.touches[0]:e;ox=p.clientX;oy=p.clientY;sx=parseInt(el.style.left||0);sy=parseInt(el.style.top||0);el.style.zIndex=++z;}
+      function move(e){if(!dragging)return;const p=e.type.startsWith('touch')?e.touches[0]:e;const nx=sx+(p.clientX-ox);const ny=sy+(p.clientY-oy);el.style.left=Math.max(8,Math.min(window.innerWidth-100,nx))+'px';el.style.top=Math.max(8,Math.min(window.innerHeight-60,ny))+'px';}
+      function end(){dragging=false;}
+      title.addEventListener('mousedown',start);document.addEventListener('mousemove',move);document.addEventListener('mouseup',end);
+      title.addEventListener('touchstart',start,{passive:false});document.addEventListener('touchmove',move,{passive:false});document.addEventListener('touchend',end);
+    }
+
+    function toggleMax(win){
+      if(win.dataset.maxed==='1'){
+        win.style.width=win.dataset.w; win.style.height=win.dataset.h; win.style.left=win.dataset.l; win.style.top=win.dataset.t; win.dataset.maxed='0';
+      }else{
+        win.dataset.w=win.style.width; win.dataset.h=win.style.height; win.dataset.l=win.style.left; win.dataset.t=win.style.top;
+        win.style.left='0px'; win.style.top='0px'; win.style.width=window.innerWidth+'px'; win.style.height=(window.innerHeight-48)+'px'; win.dataset.maxed='1';
+      }
+    }
+
+    // ==== CAMERA with Android-friendly fallbacks ====
+    let currentStream=null; let useFront=true; let currentDeviceId=null;
+
+    async function listCameras(selectEl){
+      try{
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cams = devices.filter(d=>d.kind==='videoinput');
+        selectEl.innerHTML = cams.map((d,i)=>`<option value="${d.deviceId}">${d.label || 'Câmera '+(i+1)}</option>`).join('');
+        if(cams.length){ currentDeviceId = cams[0].deviceId; }
+      }catch(e){
+        console.warn('enumerateDevices falhou', e);
+      }
+    }
+
+    function cameraConstraints(){
+      // Se já temos deviceId (após permissão), usar ele; senão, usar facingMode
+      const video = currentDeviceId ? { deviceId: { exact: currentDeviceId } }
+                                   : { facingMode: useFront ? 'user' : 'environment' };
+      return { audio:false, video };
+    }
+
+    async function startCamera(videoEl){
+      stopCamera(videoEl);
+      try{
+        if(!isSecureContext){
+          throw new Error('insecure-context');
+        }
+        const stream = await navigator.mediaDevices.getUserMedia(cameraConstraints());
+        currentStream = stream;
+        videoEl.srcObject = stream;
+        await videoEl.play();
+      }catch(err){
+        handleCamError(err);
+      }
+    }
+
+    function stopCamera(videoEl){
+      if(currentStream){
+        currentStream.getTracks().forEach(t=>t.stop());
+        currentStream=null;
+      }
+      if(videoEl){ videoEl.pause(); videoEl.srcObject=null; }
+    }
+
+    function handleCamError(err){
+      console.error(err);
+      const name = err && (err.name || err.message) || 'Unknown';
+      let msg = 'Não consegui acessar a câmera.';
+      if(name.includes('NotAllowedError') || name.includes('Permission denied')){
+        msg += '\n• Permissão negada. Toque no cadeado da barra de endereço → Permissões → Câmera → Permitir.';
+      }else if(name.includes('NotFoundError')){
+        msg += '\n• Nenhuma câmera foi encontrada no dispositivo.';
+      }else if(name.includes('NotReadableError')){
+        msg += '\n• A câmera já está em uso por outro app. Feche-o e tente de novo.';
+      }else if(name.includes('insecure-context')){
+        msg += '\n• Precisa abrir via HTTPS (ou localhost). Arquivo file:// não funciona no Android.';
+      }else{
+        msg += '\n• Erro: ' + name;
+      }
+      alert(msg);
+    }
+
+    function secureBanner(parent){
+      if(isSecureContext) return;
+      const div = document.createElement('div');
+      div.className = 'warn';
+      div.textContent = 'Este contexto não é seguro. Para usar a câmera no Android, abra via HTTPS (ex.: GitHub Pages, Netlify, Vercel) ou localhost.';
+      parent.prepend(div);
+    }
+
+    // Open app
+    function openApp(name){
+      const win=template.content.cloneNode(true).querySelector('.window');
+      const winId='win-'+(idCounter++);
+      win.dataset.id=winId;
+      win.querySelector('.title').textContent=name.charAt(0).toUpperCase()+name.slice(1);
+      const content=win.querySelector('.content');
+
+      if(name==='terminal') content.innerHTML = `
+        <div class="terminal" id="term">
+          <div><strong>htmlOS Terminal</strong> — digite <code>help</code> para começar</div>
+          <div id="pwd" style="margin:6px 0;color:var(--muted);font-size:13px;"></div>
+          <div id="out" style="white-space:pre-wrap;"></div>
+          <div style="margin-top:8px;display:flex;gap:8px">
+            <input id="cmd" placeholder="Digite um comando..." style="flex:1;padding:6px;border-radius:6px;border:1px solid var(--stroke);background:transparent;color:inherit">
+            <button id="run" class="button">Executar</button>
+          </div>
+        </div>
+      `;
+      if(name==='notes') content.innerHTML = '<textarea style="width:100%;height:100%;background:#071320;color:#bfe9d7;border:none;padding:12px;resize:none;border-radius:8px"></textarea>';
+      if(name==='settings'){
+        const isLight=document.documentElement.getAttribute('data-theme')==='light';
+        content.innerHTML = `
+          <div class="row" style="padding:4px 2px">
+            <label class="switch" title="Alterna entre Claro e Escuro">
+              <input id="themeToggle" type="checkbox" ${isLight?'checked':''}/>
+              <span>Modo Claro</span>
+            </label>
+          </div>
+          <p class="hint" style="margin-top:10px">O tema fica salvo no navegador (localStorage).</p>
+        `;
+        setTimeout(()=>{
+          const toggle=content.querySelector('#themeToggle');
+          toggle.addEventListener('change',(e)=>{
+            const theme=e.target.checked?'light':'dark';
+            document.documentElement.setAttribute('data-theme',theme);
+            localStorage.setItem(THEME_KEY,theme);
+          });
+        },0);
+      }
+      if(name==='camera'){
+        content.innerHTML = `
+          <div class="cam-wrap">
+            <div id="secureMsg"></div>
+            <video id="cameraView" class="cam-view" playsinline muted></video>
+            <div class="cam-toolbar">
+              <button id="btnStart" class="button">Iniciar</button>
+              <button id="btnFlip"  class="button">Trocar</button>
+              <select id="deviceSel" class="button" title="Escolher câmera"></select>
+              <button id="btnShot"  class="button">Capturar</button>
+              <button id="btnStop"  class="button">Parar</button>
+              <span class="hint">Dica: HTTPS (ou localhost). Se negou antes, reative no cadeado da URL.</span>
+            </div>
+            <img id="snapshot" class="preview" alt="Foto capturada" />
+            <canvas id="canvas" style="display:none"></canvas>
+          </div>
+        `;
+        setTimeout(async()=>{
+          const secureMsg = content.querySelector('#secureMsg');
+          secureBanner(secureMsg);
+
+          const videoEl=content.querySelector('#cameraView');
+          const btnStart=content.querySelector('#btnStart');
+          const btnStop=content.querySelector('#btnStop');
+          const btnFlip=content.querySelector('#btnFlip');
+          const btnShot=content.querySelector('#btnShot');
+          const deviceSel=content.querySelector('#deviceSel');
+          const canvas=content.querySelector('#canvas');
+          const snapshot=content.querySelector('#snapshot');
+
+          // Primeiro tenta popular a lista (alguns Android só liberam label após permissão)
+          await listCameras(deviceSel);
+          deviceSel.addEventListener('change',()=>{ currentDeviceId = deviceSel.value || null; });
+
+          btnStart.addEventListener('click', async ()=>{
+            // Após primeira permissão, repopula a lista com labels
+            await startCamera(videoEl);
+            await listCameras(deviceSel);
+            if(currentStream){
+              const track = currentStream.getVideoTracks()[0];
+              const settings = track.getSettings();
+              if(settings && settings.deviceId){
+                currentDeviceId = settings.deviceId;
+                const opt = [...deviceSel.options].find(o => o.value === currentDeviceId);
+                if(opt) deviceSel.value = currentDeviceId;
+              }
+            }
+          });
+
+          btnStop.addEventListener('click',()=>stopCamera(videoEl));
+          btnFlip.addEventListener('click',async()=>{
+            // Se não temos deviceId ainda, alterna facingMode; senão, alterna entre itens do select
+            if(!currentDeviceId){
+              useFront = !useFront;
+              if(currentStream){ await startCamera(videoEl); }
+            }else{
+              if(deviceSel.options.length > 1){
+                const idx = deviceSel.selectedIndex;
+                const next = (idx + 1) % deviceSel.options.length;
+                deviceSel.selectedIndex = next;
+                currentDeviceId = deviceSel.value;
+                if(currentStream){ await startCamera(videoEl); }
+              }
+            }
+          });
+          btnShot.addEventListener('click',()=>{
+            if(!videoEl.videoWidth) return;
+            const w=videoEl.videoWidth,h=videoEl.videoHeight;
+            canvas.width=w;canvas.height=h;
+            const ctx=canvas.getContext('2d');
+            ctx.drawImage(videoEl,0,0,w,h);
+            snapshot.src=canvas.toDataURL('image/png');
+            snapshot.style.display='block';
+          });
+
+          win.querySelector('[data-action="close"]').addEventListener('click',()=>stopCamera(videoEl));
+        },0);
+      }
+
+      win.style.left=(60+Math.random()*200)+'px';
+      win.style.top=(60+Math.random()*120)+'px';
+      win.style.zIndex=++z;
+      desktop.appendChild(win);
+      addTask(winId, win.querySelector('.title').textContent);
+      win.querySelector('[data-action="close"]').addEventListener('click',()=>{win.remove();removeTask(winId);});
+      win.querySelector('[data-action="min"]').addEventListener('click',()=>{win.style.display='none';});
+      win.querySelector('[data-action="max"]').addEventListener('click',()=>{toggleMax(win);});
+      win.addEventListener('mousedown',()=>win.style.zIndex=++z);
+      win.addEventListener('touchstart',()=>win.style.zIndex=++z);
+      makeDraggable(win);
+      if(name==='terminal') wireTerminal(win);
+    }
+
+    // Terminal
+    function wireTerminal(win){
+      const out=win.querySelector('#out');
+      const cmd=win.querySelector('#cmd');
+      const run=win.querySelector('#run');
+      const pwdEl=win.querySelector('#pwd');
+      function refreshPwd(){pwdEl.textContent='Diretório: '+cwd;} refreshPwd();
+      function writeLine(t){out.innerHTML+=t+'\n'; out.scrollTop=out.scrollHeight;}
+      function runCmd(raw){
+        if(!raw)return;
+        const s=raw.trim(); writeLine('> '+s);
+        const parts=s.split(' ').filter(Boolean);
+        const c=parts[0].toLowerCase(); const rest=parts.slice(1).join(' ');
+        if(c==='help'){writeLine('Comandos: help, time, pwd, ls, cd <dir>, echo <texto>, clear, delete <nome>, mkdir <nome>, touch <nome>, rm, ver, cat');}
+        else if(c==='ver'){writeLine('htmlOS');writeLine('Versão: Beta 1 Build 134 - Public Beta Build');writeLine('Language Pack version and language: PT-BR - Version 1.0 Finished');writeLine('root: /HTMLSYS');}
+        else if(c==='time'){writeLine(new Date().toString());}
+        else if(c==='pwd'){writeLine(cwd);}
+        else if(c==='ls'){const target=rest||'.';const path=normalizePath(target==='.'?cwd:target);const res=listDir(path);if(res.error)writeLine('Erro: '+res.error);else{const lines=res.children.map(it=>it.node.type==='dir'?it.name+'/':it.name).join('  ');writeLine(lines||'(vazio)');}}
+        else if(c==='cd'){const target=rest||'/home/user';const path=normalizePath(target);const node=getNode(path);if(!node)writeLine('cd: diretório não existe: '+target);else if(node.type!=='dir')writeLine('cd: não é um diretório: '+target);else{cwd=path;refreshPwd();}}
+        else if(c==='echo'){writeLine(rest);}
+        else if(c==='clear'){out.innerHTML='';}
+        else if(c==='cat'){const target=rest.trim();if(!target)writeLine('cat: falta operando');else{const path=normalizePath(target);const node=getNode(path);if(!node)writeLine('cat: arquivo não encontrado');else if(node.type!=='file')writeLine('cat: não é um arquivo');else writeLine(node.content||'');}}
+        else if(c==='mkdir'){const name=rest.trim();if(!name)writeLine('mkdir: falta operando');else{const path=normalizePath(name);const parts=path.split('/').filter(Boolean);const newName=parts.pop();const parentPath='/'+parts.join('/');const parent=getNode(parentPath==='/'?'/':parentPath);if(!parent||parent.type!=='dir')writeLine('mkdir: caminho inválido');else{parent.children[newName]={type:'dir',children:{}};writeLine('mkdir: '+newName+' criado');}}}
+        else if(c==='touch'){const name=rest.trim();if(!name)writeLine('touch: falta operando');else{const path=normalizePath(name);const parts=path.split('/').filter(Boolean);const newName=parts.pop();const parentPath='/'+parts.join('/');const parent=getNode(parentPath==='/'?'/':parentPath);if(!parent||parent.type!=='dir')writeLine('touch: caminho inválido');else{parent.children[newName]={type:'file',content:''};writeLine('touch: '+newName+' criado');}}}
+        else if(c==='rm'){const name=rest.trim();if(!name)writeLine('rm: falta operando');else{const path=normalizePath(name);const parts=path.split('/').filter(Boolean);const targetName=parts.pop();const parentPath='/'+parts.join('/');const parent=getNode(parentPath==='/'?'/':parentPath);if(!parent||parent.type!=='dir')writeLine('rm: caminho inválido');else if(!parent.children[targetName])writeLine('rm: arquivo não encontrado');else{delete parent.children[targetName];writeLine('rm: '+targetName+' removido');}}}
+        else if(c==='delete'){const target=(rest||'').trim().toUpperCase();if(!target)writeLine('delete: falta operando');else if(target==='HTMLSYS'){document.documentElement.innerHTML='<head><meta charset="utf-8"><title>System Failure</title></head><body style="margin:0;background:black;color:white;font-family:monospace;display:flex;align-items:center;justify-content:center"><div style="text-align:center;padding:20px;font-size:16px">System Files Missing.<br><br>Missing Files:<br>syshtmlload.sys<br>systemui.htmlapp<br>uimodules.regrule<br>UIRules.uirules</div></body>';}else{const path=normalizePath(rest);const parts=path.split('/').filter(Boolean);if(parts.length===0)writeLine('delete: não pode deletar raiz');else{const name=parts.pop();const parentPath='/'+parts.join('/');const parent=getNode(parentPath==='/'?'/':parentPath);if(!parent||parent.type!=='dir')writeLine('delete: caminho inválido');else if(!parent.children[name])writeLine('delete: não encontrado: '+name);else{delete parent.children[name];writeLine('delete: '+name+' removido');}}}}
+        else{writeLine('Comando não reconhecido - digite help');}
+      }
+      run.addEventListener('click',()=>{runCmd(cmd.value);cmd.value='';});
+      cmd.addEventListener('keydown',e=>{if(e.key==='Enter'){runCmd(cmd.value);cmd.value='';}});
+      cmd.focus();
+    }
+
+    // Robust icons
+    iconsContainer.addEventListener('click', (e)=>{
+      const icon = e.target.closest('.icon');
+      if(!icon) return;
+      const app = icon.getAttribute('data-app');
+      if(app) openApp(app);
+    });
+    iconsContainer.addEventListener('touchstart', (e)=>{
+      const icon = e.target.closest('.icon');
+      if(!icon) return;
+      e.preventDefault();
+      const app = icon.getAttribute('data-app');
+      if(app) openApp(app);
+    }, {passive:false});
+
+    // Start menu
+    startMenu.classList.add('hidden');
+    startBtn.addEventListener('click', e => { startMenu.classList.toggle('hidden'); e.stopPropagation(); });
+    document.addEventListener('click', e => { if (!startMenu.contains(e.target) && e.target !== startBtn) startMenu.classList.add('hidden'); });
+    document.getElementById('logoutBtn').addEventListener('click', () => location.reload());
+
+  } catch (err) {
+    alert('Erro ao inicializar htmlOS: ' + err.message);
+    console.error(err);
+  }
+});
+</script>
+</body>
+</html>
